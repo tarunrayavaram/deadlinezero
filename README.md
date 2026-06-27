@@ -472,7 +472,7 @@ git commit -m "feat: initial DeadlineZero implementation
 gh repo create deadlinezero --public --push
 
 # Or manually on github.com, then:
-git remote add origin https://github.com/YOUR_USERNAME/deadlinezero.git
+git remote add origin https://github.com/tarunrayavaram/deadlinezero.git
 git branch -M main
 git push -u origin main
 ```
