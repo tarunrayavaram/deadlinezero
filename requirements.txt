@@ -1,0 +1,67 @@
+# ============================================================
+# DeadlineZero – Requirements for Python 3.14+
+#
+# Python 3.14 notes:
+# - Uses >= constraints so pip resolves the newest compatible wheel
+# - Hard pins are avoided; Python 3.14 wheels arrive after release
+#   and strict pins risk "no matching distribution" errors
+# - Run:  pip install -r requirements.txt
+# - Upgrade all: pip install -r requirements.txt --upgrade
+# ============================================================
+
+# ── Core Framework ───────────────────────────────────────────
+fastapi>=0.115.5
+uvicorn[standard]>=0.32.1
+
+# ── Google Gemini AI SDK ─────────────────────────────────────
+# google-genai is the current unified SDK (replaces deprecated google-generativeai)
+# import as: from google import genai  /  from google.genai import types
+
+google-genai>=1.16.0
+protobuf>=5.29.0               # Needed by Gemini SDK; 5.x has 3.14 wheels
+
+# ── Database ─────────────────────────────────────────────────
+# SQLAlchemy 2.0.36+ supports Python 3.14 (pure-Python fallback for C ext)
+sqlalchemy>=2.0.36
+# aiosqlite is pure Python — always compatible
+aiosqlite>=0.20.0
+# greenlet is required by SQLAlchemy async; 3.x has 3.14 wheels
+greenlet>=3.1.0
+
+# ── Data Validation ──────────────────────────────────────────
+# Pydantic v2 uses Rust (pydantic-core); 2.10+ has Python 3.14 wheels
+pydantic>=2.10.0
+pydantic-settings>=2.6.1
+
+# ── Environment Variables ────────────────────────────────────
+python-dotenv>=1.0.1           # Pure Python — always compatible
+
+# ── Scheduling ───────────────────────────────────────────────
+# APScheduler 3.x: pure Python, works on 3.14
+# APScheduler 4.x is async-native but still stabilising; stick with 3.x
+apscheduler>=3.10.4,<4.0
+
+# ── HTTP Client ──────────────────────────────────────────────
+# httpx 0.28+ has Python 3.14 compatibility fixes
+httpx>=0.28.0
+
+# ── Retry Logic ──────────────────────────────────────────────
+tenacity>=9.0.0                # Pure Python — always compatible
+
+# ── Date/Time ────────────────────────────────────────────────
+python-dateutil>=2.9.0         # Pure Python — always compatible
+
+# ── Static Files & Templating ────────────────────────────────
+aiofiles>=24.1.0               # Pure Python — always compatible
+jinja2>=3.1.4                  # Pure Python — always compatible
+markupsafe>=3.0.0              # Jinja2 dependency; 3.x has 3.14 wheels
+
+# ── Testing ──────────────────────────────────────────────────
+pytest>=8.3.3
+pytest-asyncio>=0.24.0
+
+# ── Code Quality (dev only) ──────────────────────────────────
+# Ruff is a Rust binary — install separately if the wheel isn't
+# available for your platform/Python 3.14 build:
+#   pip install ruff  (or skip if unavailable)
+ruff>=0.9.0
