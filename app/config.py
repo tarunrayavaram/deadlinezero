@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     app_env: str = Field(default="development")
     app_debug: bool = Field(default=False)
     app_host: str = Field(default="0.0.0.0")
-    app_port: int = Field(default=8000)
+    app_port: int = Field(default=8080)
 
     # ------------------------------------------------------------------
     # Database

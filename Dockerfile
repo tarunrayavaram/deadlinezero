@@ -36,7 +36,7 @@ COPY --chown=appuser:appuser . .
 # Switch to non-root user
 USER appuser
 
-# Cloud Run injects PORT env var; default to 8000
+# Cloud Run injects PORT env var; default to 8080
 ENV PORT=8080
 ENV APP_HOST=0.0.0.0
 ENV APP_ENV=production

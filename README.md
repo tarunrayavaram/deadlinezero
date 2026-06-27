@@ -291,25 +291,25 @@ GEMINI_API_KEY=your_key_here
 
 ```bash
 # Development mode (auto-reload)
-uvicorn app.main:app --reload --port 8000
+uvicorn app.main:app --reload --port 8080
 
 # Or directly
 python -m app.main
 ```
 
-Open http://localhost:8000 in your browser.
+Open http://localhost:8080 in your browser.
 
 ### Step 4: Verify
 
 ```bash
 # Health check
-curl http://localhost:8000/health
+curl http://localhost:8080/health
 
 # Readiness check
-curl http://localhost:8000/health/ready
+curl http://localhost:8080/health/ready
 
 # API docs
-open http://localhost:8000/docs
+open http://localhost:8080/docs
 ```
 
 ---
@@ -373,7 +373,7 @@ gcloud run deploy deadlinezero \
   --region us-central1 \
   --allow-unauthenticated \
   --set-env-vars GEMINI_API_KEY=your_key,APP_ENV=production \
-  --port 8000
+  --port 8080
 ```
 
 ### Option C: Local Docker
@@ -383,7 +383,7 @@ gcloud run deploy deadlinezero \
 docker build -t deadlinezero .
 
 # Run
-docker run -p 8000:8000 \
+docker run -p 8080:8080 \
   -e GEMINI_API_KEY=your_key \
   -e APP_ENV=production \
   deadlinezero
