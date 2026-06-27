@@ -13,8 +13,8 @@ from pydantic import BaseModel, Field, field_validator
 from app.models.task import TaskPriority, TaskStatus
 
 
-def _to_naive_utc(dt: datetime) -> datetime:
-    """Convert any datetime to naive UTC for SQLite-compatible storage."""
+def _to_aware_utc(dt: datetime) -> datetime:
+    """Convert any datetime to aware UTC for SQLite-compatible storage."""
     if dt.tzinfo is not None:
         dt = dt.astimezone(timezone.utc).replace(tzinfo=None)
     return dt
@@ -48,7 +48,7 @@ class TaskBase(BaseModel):
         if isinstance(v, str):
             v = datetime.fromisoformat(v.replace("Z", "+00:00"))
         if isinstance(v, datetime):
-            return _to_naive_utc(v)
+            return _to_aware_utc(v)
         return v
 
 

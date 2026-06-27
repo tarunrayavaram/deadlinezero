@@ -13,7 +13,7 @@ Responsibilities:
 """
 
 import json
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from sqlalchemy import and_, func, select
@@ -102,7 +102,7 @@ class TaskService:
 
         # Mark completion timestamp (naive UTC — SQLite strips tzinfo anyway)
         if data.status == TaskStatus.COMPLETED and task.completed_at is None:
-            task.completed_at = datetime.utcnow()
+            task.completed_at = datetime.now(timezone.utc)
 
         # Recompute urgency on update
         task.urgency_score = self._compute_urgency(task)
@@ -121,7 +121,7 @@ class TaskService:
 
     async def get_overdue_tasks(self) -> List[Task]:
         """Tasks whose deadline has passed and are not completed/cancelled."""
-        now_naive = datetime.utcnow()  # naive UTC — matches SQLite stored values
+        now_naive = datetime.now(timezone.utc)  # naive UTC — matches SQLite stored values
         q = (
             select(Task)
             .options(selectinload(Task.subtasks))
@@ -156,31 +156,31 @@ class TaskService:
             raise ValueError(f"Task {task_id} not found")
 
         prompt = f"""
-You are a productivity expert. Break this task into {num_subtasks} concrete, actionable subtasks.
+            You are a productivity expert. Break this task into {num_subtasks} concrete, actionable subtasks.
 
-Task: {task.title}
-Description: {task.description or 'N/A'}
-Deadline: {task.deadline.isoformat() if task.deadline else 'Not set'}
-Category: {task.category or 'General'}
+            Task: {task.title}
+            Description: {task.description or 'N/A'}
+            Deadline: {task.deadline.isoformat() if task.deadline else 'Not set'}
+            Category: {task.category or 'General'}
 
-Return a JSON object with this exact structure:
-{{
-  "subtasks": [
-    {{
-      "title": "Clear action verb + specific outcome",
-      "description": "What exactly to do",
-      "estimated_minutes": 30,
-      "priority": 2
-    }}
-  ]
-}}
+            Return a JSON object with this exact structure:
+            {{
+            "subtasks": [
+                {{
+                "title": "Clear action verb + specific outcome",
+                "description": "What exactly to do",
+                "estimated_minutes": 30,
+                "priority": 2
+                }}
+            ]
+            }}
 
-Rules:
-- Each subtask must be completable in a single focused session
-- Title must start with an action verb (Research, Write, Review, etc.)
-- estimated_minutes should be realistic (15–180)
-- Priority: 1=Critical, 2=High, 3=Medium, 4=Low
-"""
+            Rules:
+            - Each subtask must be completable in a single focused session
+            - Title must start with an action verb (Research, Write, Review, etc.)
+            - estimated_minutes should be realistic (15–180)
+            - Priority: 1=Critical, 2=High, 3=Medium, 4=Low
+        """
         result = generate_json(prompt)
         subtask_data = result.get("subtasks", [])
 
@@ -212,7 +212,7 @@ Rules:
     async def get_workload_stats(self) -> Dict[str, Any]:
         """Compute workload statistics used by the AI coach and dashboard."""
         # Use naive UTC throughout — matches how SQLite returns datetimes
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         today_end = now.replace(hour=23, minute=59, second=59)
         week_end = now + timedelta(days=7)
 
@@ -361,7 +361,7 @@ Rules:
         if task.deadline is None:
             return 0.2 * priority_weight
 
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         deadline = task.deadline  # always naive UTC after schema normalization
 
         hours_left = (deadline - now).total_seconds() / 3600

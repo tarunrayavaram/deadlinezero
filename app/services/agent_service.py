@@ -25,7 +25,7 @@ the "Agentic Depth" evaluation criterion.
 
 import json
 import uuid
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -192,7 +192,7 @@ class AgentService:
     async def _tool_get_all_tasks(self, args: Dict) -> Dict:
         status_filter = args.get("status_filter", "all")
         tasks = await self._task_service.get_tasks(status_filter=status_filter)
-        now = datetime.utcnow()  # naive UTC — matches SQLite stored values
+        now = datetime.now(timezone.utc)  # naive UTC — matches SQLite stored values
         return {
             "tasks": [
                 {
