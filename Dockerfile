@@ -37,12 +37,12 @@ COPY --chown=appuser:appuser . .
 USER appuser
 
 # Cloud Run injects PORT env var; default to 8000
-ENV PORT=8000
+ENV PORT=8080
 ENV APP_HOST=0.0.0.0
 ENV APP_ENV=production
 ENV APP_DEBUG=false
 
-EXPOSE 8000
+EXPOSE 8080
 
 # Health check for Cloud Run
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
