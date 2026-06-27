@@ -23,8 +23,9 @@ protobuf>=5.29.0               # Needed by Gemini SDK; 5.x has 3.14 wheels
 # ── Database ─────────────────────────────────────────────────
 # SQLAlchemy 2.0.36+ supports Python 3.14 (pure-Python fallback for C ext)
 sqlalchemy>=2.0.36
-# aiosqlite is pure Python — always compatible
+# aiosqlite for SQLite (local dev), asyncpg for PostgreSQL (Cloud Run)
 aiosqlite>=0.20.0
+asyncpg>=0.29.0
 # greenlet is required by SQLAlchemy async; 3.x has 3.14 wheels
 greenlet>=3.1.0
 
