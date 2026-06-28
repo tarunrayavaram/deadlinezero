@@ -46,18 +46,17 @@ class TaskService:
     # ------------------------------------------------------------------
 
     async def create_task(self, data: TaskCreate) -> Task:
-        """Create a task and auto-assign an AI-generated category if missing."""
+        """
+        Create a task instantly. AI categorisation is intentionally skipped here —
+        the router schedules it as a BackgroundTask so the response is immediate.
+        """
         task = Task(**data.model_dump(exclude_unset=True))
 
-        # Auto-categorise with Gemini if no category provided
+        # Use provided category or a fast default; AI will refine it in background
         if not task.category:
-            try:
-                task.category = await self._ai_categorise(task.title, task.description)
-            except Exception as exc:
-                logger.warning("AI categorisation failed: %s", exc)
-                task.category = "General"
+            task.category = "General"
 
-        # Compute initial urgency score
+        # Compute initial urgency score (pure Python, no AI call)
         task.urgency_score = self._compute_urgency(task)
 
         self._db.add(task)
@@ -124,6 +123,22 @@ class TaskService:
         await self._db.delete(task)
         await self._db.flush()
         return True
+
+    async def update_category_background(self, task_id: int) -> None:
+        """
+        Called as a BackgroundTask after create_task returns.
+        Runs Gemini categorisation and updates the task's category silently.
+        """
+        task = await self.get_task(task_id)
+        if task is None or task.category != "General":
+            return  # already categorised or deleted
+        try:
+            category = await self._ai_categorise(task.title, task.description)
+            task.category = category
+            await self._db.flush()
+            logger.info("Background categorised task %d → %r", task_id, category)
+        except Exception as exc:
+            logger.warning("Background categorisation failed for task %d: %s", task_id, exc)
 
     async def get_overdue_tasks(self) -> List[Task]:
         """Tasks whose deadline has passed and are not completed/cancelled."""

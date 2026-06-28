@@ -7,10 +7,10 @@ Follows REST conventions: GET /tasks, POST /tasks, PATCH /tasks/{id}, DELETE /ta
 
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database import get_db
+from app.database import AsyncSessionLocal, get_db
 from app.schemas.task import TaskCreate, TaskListResponse, TaskResponse, TaskUpdate
 from app.services.task_service import TaskService
 from app.utils.logging_config import get_logger
@@ -45,13 +45,31 @@ async def list_tasks(
     )
 
 
+async def _bg_categorise(task_id: int) -> None:
+    """Run AI categorisation in the background after the response is sent."""
+    try:
+        async with AsyncSessionLocal() as db:
+            svc = TaskService(db)
+            await svc.update_category_background(task_id)
+            await db.commit()
+    except Exception as exc:
+        logger.warning("Background categorisation failed for task %d: %s", task_id, exc)
+
+
 @router.post("", response_model=TaskResponse, status_code=status.HTTP_201_CREATED, summary="Create task")
 async def create_task(
     payload: TaskCreate,
+    background_tasks: BackgroundTasks,
     service: TaskService = Depends(_get_service),
 ) -> TaskResponse:
-    """Create a new task. Gemini auto-categorises if no category is provided."""
+    """
+    Create a new task instantly. If no category is provided, Gemini auto-categorises
+    it in the background so the response is returned immediately.
+    """
     task = await service.create_task(payload)
+    # Only schedule background AI categorisation if category is still the default
+    if task.category == "General" and not payload.category:
+        background_tasks.add_task(_bg_categorise, task.id)
     return task
 
 
